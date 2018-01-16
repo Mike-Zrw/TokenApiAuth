@@ -141,7 +141,7 @@ namespace ApiTokenAuth.Helper
         {
             try
             {
-                string tokenResult = Posts(TokenUrl, TokenClient.GetRequestAuth(Token_WebAuth, PublicKey));
+                string tokenResult = Posts(TokenUrl, TokenClient.GetRequestParam(Token_WebAuth, PublicKey));
                 ToolFactory.LogHelper.Notice("重新获取token:" + tokenResult);
                 TokenResult getTokenResult = JsonConvert.DeserializeObject<TokenResult>(tokenResult);
                 if (getTokenResult.Success)

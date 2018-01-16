@@ -19,25 +19,20 @@ namespace ApiDemo.Attributes
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         public override void OnActionExecuting(HttpActionContext actionContext)
         {
-            bool valid = false;
+            ValidTokenResult result;
             try
             {
-                ValidTokenResult result = TokenService.ValidClientToken(actionContext.Request.Headers);
-                valid = result.Success;
+                result = TokenService.ValidClientToken(actionContext.Request.Headers);
             }
             catch (Exception e)
             {
-                valid = false;
+                result = new ValidTokenResult() { Success = false, Message = e.Message };
                 log.Error("验证授权发生异常", e);
             }
-            if (valid)
-            {
+            if (result.Success)
                 base.OnActionExecuting(actionContext);
-            }
             else
-            {
                 actionContext.Response = new HttpResponseMessage(HttpStatusCode.Unauthorized);
-            }
         }
     }
 }

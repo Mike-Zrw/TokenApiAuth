@@ -31,10 +31,9 @@ namespace ApiTokenAuth.Helper
         /// <param name="auth">用户身份标识</param>
         /// <param name="PublicKey">密钥，若不传入，需要在WebConfig中配置</param>
         /// <returns></returns>
-        public static string GetRequestAuth(string auth, string PublicKey)
+        public static string GetRequestParam(string auth, string PublicKey)
         {
-            Random rd = new Random();
-            string rdStr = rd.Next(100, 999).ToString();
+            string rdStr = new Random().Next(100, 999).ToString();
             if (PublicKey == null)
             {
                 throw new Exception("没有配置publickey");

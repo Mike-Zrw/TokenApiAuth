@@ -42,6 +42,10 @@ namespace ApiTokenAuth.Helper
         /// 有权限调用api的用户列表
         /// </summary>
         private static string[] Token_AllowAuthLists;
+        /// <summary>
+        /// Token_OverTime和auth的对应配置
+        /// </summary>
+        private static Dictionary<string, int> AuthMapOverTime;
         static TokenService()
         {
             if (ConfigurationManager.AppSettings["Token_AllowAuthList"] != null)
@@ -57,6 +61,11 @@ namespace ApiTokenAuth.Helper
             {
                 ReqToken_OverTime = Convert.ToInt32(ConfigurationManager.AppSettings["ReqToken_OverTime"]);
             }
+            if (ConfigurationManager.AppSettings["AuthMapOverTime"] != null) //{"auth1":1000}
+            {
+                string jsonMap = ConfigurationManager.AppSettings["AuthMapOverTime"];
+                AuthMapOverTime = JsonConvert.DeserializeObject<Dictionary<string, int>>(jsonMap);
+            }
             Timer tm = new Timer();
             tm.Interval = 60000;
             tm.Elapsed += Tm_ClearUnUseTokenCache;
@@ -69,23 +78,30 @@ namespace ApiTokenAuth.Helper
         /// <param name="e"></param>
         private static void Tm_ClearUnUseTokenCache(object sender, ElapsedEventArgs e)
         {
-            Dictionary<string, string> caches = ToolFactory.CacheHelper.GetAllCache("ServiceTokenCacheKey_");
-            int allcount = caches.Count;
-            int removeSum = 0;
-            if (allcount != 0)
+            try
             {
-                foreach (string key in caches.Keys)
+                Dictionary<string, string> caches = ToolFactory.CacheHelper.GetAllCache("ServiceTokenCacheKey_");
+                int allcount = caches.Count;
+                int removeSum = 0;
+                if (allcount != 0)
                 {
-                    string value = caches[key];
-                    TokenClaims tcCache = TokenFactory.ParseTokenClaims(value);
-                    if (TokenIsTimeLoss(tcCache.Exp))
+                    foreach (string key in caches.Keys)
                     {
-                        ToolFactory.CacheHelper.RemoveCache(key);
-                        removeSum++;
+                        string value = caches[key];
+                        TokenClaims tcCache = TokenFactory.ParseTokenClaims(value);
+                        if (TokenIsTimeLoss(tcCache.Exp))
+                        {
+                            ToolFactory.CacheHelper.RemoveCache(key);
+                            removeSum++;
+                        }
                     }
                 }
+                ToolFactory.LogHelper.Notice(string.Format("服务器定时清空无用缓存,本次共检索缓存{0}个,清除{1}个", allcount, removeSum));
             }
-            ToolFactory.LogHelper.Notice(string.Format("服务器定时清空无用缓存,本次共检索缓存{0}个,清除{1}个", allcount, removeSum));
+            catch (Exception ex)
+            {
+                ToolFactory.LogHelper.Error("时清空无用缓存报错", ex);
+            }
         }
 
         /// <summary>
@@ -134,9 +150,12 @@ namespace ApiTokenAuth.Helper
                 if ((TimeHelper.GetTimeSecond() - reqTimespan) > ReqToken_OverTime)
                     return new TokenResult() { Success = false, Error_Message = "请求时间超时" };
                 string uname = TokenFactory.CreateUserName(ReqAuthId);
-                string tokenStr = TokenFactory.CreateTokenStr("jwt", ReqAuthId, uname, Token_OverTime);
+                long TokenOverTime = Token_OverTime;
+                if (AuthMapOverTime != null && AuthMapOverTime.ContainsKey(ReqAuthId))
+                    TokenOverTime = AuthMapOverTime[ReqAuthId];
+                string tokenStr = TokenFactory.CreateTokenStr("jwt", ReqAuthId, uname, TokenOverTime);
                 ToolFactory.LogHelper.Notice("生成token:" + tokenStr);
-                ToolFactory.CacheHelper.SetCache("ServiceTokenCacheKey_" + uname, tokenStr, TimeSpan.FromSeconds(Token_OverTime + 600)); //多存600秒
+                ToolFactory.CacheHelper.SetCache("ServiceTokenCacheKey_" + uname, tokenStr, TimeSpan.FromSeconds(TokenOverTime + 600)); //多存600秒
                 return new TokenResult() { Success = true, Token = AesHelper.Encrypt(tokenStr) }; ;
             }
             catch (Exception ex)
@@ -160,10 +179,10 @@ namespace ApiTokenAuth.Helper
             string tokenStr = header.Authorization.Parameter;
             //ToolFactory.LogHelper.Notice("接收到带token的请求:" + tokenStr);
             TokenClaims tcParam = TokenFactory.ParseTokenClaims(AesHelper.Decrypt(tokenStr));
-            TokenClaims tcCache = TokenFactory.ParseTokenClaims(ToolFactory.CacheHelper.GetCache<string>(tcParam.Usr));   //请求人在系统中存储的身份信息
+            TokenClaims tcCache = TokenFactory.ParseTokenClaims(ToolFactory.CacheHelper.GetCache<string>(tcParam.Usr));
             if (tcCache != null)
             {
-                if (TokenIsTimeLoss(tcCache.Exp))  //可以延长30秒来防止缓存边界的错误
+                if (TokenIsTimeLoss(tcCache.Exp))
                 {
                     return new ValidTokenResult() { Success = false, Message = "token过时" };
                 }
@@ -192,7 +211,7 @@ namespace ApiTokenAuth.Helper
             return Token_AllowAuthLists.Contains(Auth);
         }
         /// <summary>
-        /// 判断token是否失效
+        /// 判断token是否失效,可以延长30秒来防止边界的错误
         /// </summary>
         /// <returns></returns>
         private static bool TokenIsTimeLoss(long exptime)
