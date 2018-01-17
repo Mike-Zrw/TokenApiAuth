@@ -122,7 +122,7 @@ namespace ApiTokenAuth.Helper
             if (logHelper != null)
                 ToolFactory.LogHelper = logHelper;
             if (token_OverTime != 0)
-                Token_OverTime = token_OverTime;
+                Token_OverTime = token_OverTime + 30;
             ReqToken_OverTime = reqToken_OverTime;
         }
 
