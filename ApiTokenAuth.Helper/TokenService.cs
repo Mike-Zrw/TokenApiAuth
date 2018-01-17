@@ -22,6 +22,7 @@ namespace ApiTokenAuth.Helper
     /// </summary>
     public class TokenService
     {
+        private static List<string> MakeTokenParamHistory = new List<string>();
         /// <summary>
         /// 请求获取token的超时时间
         /// </summary>
@@ -141,8 +142,20 @@ namespace ApiTokenAuth.Helper
                     DesAuth = RSAHelper.Decrypt(RequestAuth, Config_PrimaryKey);
                 else
                     DesAuth = RSAHelper.Decrypt(RequestAuth, PrimaryKey);
-                string ReqAuthId = DesAuth.Substring(DesAuth.Length - 13, 10);//请求人身份标识
-                long reqTimespan = long.Parse(DesAuth.Substring(0, DesAuth.Length - 13));  //客户端请求时间秒数
+
+                #region 请求历史是否有重复
+                if (MakeTokenParamHistory.Contains(DesAuth))
+                {
+                    ToolFactory.LogHelper.Info("生成token身份验证失败:该请求的字符串与之前重复：" + DesAuth);
+                    return new TokenResult() { Success = false, Error_Message = "请求数据非法" };
+                }
+                MakeTokenParamHistory.Insert(0, DesAuth);
+                if (MakeTokenParamHistory.Count > 1000)
+                    MakeTokenParamHistory.RemoveRange(1000, MakeTokenParamHistory.Count - 1000);
+                #endregion
+
+                string ReqAuthId = DesAuth.Substring(DesAuth.Length - 46, 10);//请求人身份标识
+                long reqTimespan = long.Parse(DesAuth.Substring(0, DesAuth.Length - 46));  //客户端请求时间秒数
 
                 if (!ValidTokenAuth(ReqAuthId))
                 {

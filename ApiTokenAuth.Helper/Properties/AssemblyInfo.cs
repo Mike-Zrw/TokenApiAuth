@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // 控制。更改这些特性值可修改
 // 与程序集关联的信息。
 [assembly: AssemblyTitle("ApiTokenAuth.Helper")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("The Token AutoAuth For SOA Service")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("ApiTokenAuth.Helper")]

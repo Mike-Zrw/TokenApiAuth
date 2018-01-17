@@ -9,3 +9,7 @@
 /ClientDemo/obj
 /ApiDemo/obj
 /ApiTokenAuth.Helper/obj
+/ApiTokenAuth.Helper/NuGet.exe
+/ApiTokenAuth.Helper/ApiTokenAuth.Helper.1.0.0.0.nupkg
+/ApiTokenAuth.Helper/ApiTokenAuth.Helper.csproj.user
+/ApiTokenAuth.Helper/ApiTokenAuth.Helper.nuspec

@@ -11,9 +11,6 @@ namespace ClientDemo.Controllers
     {
         public ActionResult Index()
         {
-            Dictionary<string, int> aaa = new Dictionary<string, int>();
-            aaa.Add("123", 111);
-            string a = JsonConvert.SerializeObject(aaa);
             TestApiReference t = new TestApiReference();
             string name=t.GetName();
             ViewData["Name"] = name;
