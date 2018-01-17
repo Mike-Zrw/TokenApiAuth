@@ -16,7 +16,6 @@ namespace ApiDemo.Attributes
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = true, AllowMultiple = true)]
     public class ValidateAttribute : ActionFilterAttribute
     {
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         public override void OnActionExecuting(HttpActionContext actionContext)
         {
             ValidTokenResult result;
@@ -27,7 +26,7 @@ namespace ApiDemo.Attributes
             catch (Exception e)
             {
                 result = new ValidTokenResult() { Success = false, Message = e.Message };
-                log.Error("验证授权发生异常", e);
+                ToolFactory.LogHelper.Error("验证授权发生异常", e);
             }
             if (result.Success)
                 base.OnActionExecuting(actionContext);

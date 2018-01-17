@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -12,6 +13,7 @@ namespace ApiTokenAuth.Helper
     /// </summary>
     public class LogHelper : ILogHelper
     {
+        public static string TokenLogLevel = ConfigurationManager.AppSettings["TokenLogLevel"];
         public void Error(string message, Exception ex = null)
         {
             try
@@ -70,6 +72,10 @@ namespace ApiTokenAuth.Helper
         }
         private static void WriteLog(string message, string filename)
         {
+            if (filename == "notice" && (TokenLogLevel == null || !TokenLogLevel.ToLower().Contains("notice")))
+                return;
+            if (filename == "info" && (TokenLogLevel == null || !TokenLogLevel.ToLower().Contains("info")))
+                return;
             string path = AppDomain.CurrentDomain.BaseDirectory + "/tokenlog/";
             if (!Directory.Exists(path))
             {

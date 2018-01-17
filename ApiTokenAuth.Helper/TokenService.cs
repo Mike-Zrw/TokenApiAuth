@@ -31,11 +31,11 @@ namespace ApiTokenAuth.Helper
         /// 客户端发起请求获取token，如果超过了此时间才到达api,则视为请求超时
         /// 默认60s
         /// </summary>
-        private static int ReqToken_OverTime = 60;
+        private static int ReqToken_OverTime = TokenConfig.ReqToken_OverTime;
         /// <summary>
         /// 一个token的超时时间，默认300秒
         /// </summary>
-        private static long Token_OverTime = 300;
+        private static long Token_OverTime = TokenConfig.Token_OverTime;
         private static string Config_PrimaryKey { get { return PrimaryKeyPath; } }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace ApiTokenAuth.Helper
                     foreach (string key in caches.Keys)
                     {
                         string value = caches[key];
-                        TokenClaims tcCache = TokenFactory.ParseTokenClaims(value);
+                        TokenClaims tcCache = TokenBuilder.ParseTokenClaims(value);
                         if (TokenIsTimeLoss(tcCache.Exp))
                         {
                             ToolFactory.CacheHelper.RemoveCache(key);
@@ -145,15 +145,21 @@ namespace ApiTokenAuth.Helper
                 long reqTimespan = long.Parse(DesAuth.Substring(0, DesAuth.Length - 13));  //客户端请求时间秒数
 
                 if (!ValidTokenAuth(ReqAuthId))
+                {
+                    ToolFactory.LogHelper.Info("生成token身份验证失败:DesAuth" + DesAuth);
                     return new TokenResult() { Success = false, Error_Message = "身份验证失败" };
+                }
 
                 if ((TimeHelper.GetTimeSecond() - reqTimespan) > ReqToken_OverTime)
+                {
+                    ToolFactory.LogHelper.Info("生成token请求时间超时:DesAuth" + DesAuth);
                     return new TokenResult() { Success = false, Error_Message = "请求时间超时" };
-                string uname = TokenFactory.CreateUserName(ReqAuthId);
+                }
+                string uname = TokenBuilder.CreateUserName(ReqAuthId);
                 long TokenOverTime = Token_OverTime;
                 if (AuthMapOverTime != null && AuthMapOverTime.ContainsKey(ReqAuthId))
                     TokenOverTime = AuthMapOverTime[ReqAuthId];
-                string tokenStr = TokenFactory.CreateTokenStr("jwt", ReqAuthId, uname, TokenOverTime);
+                string tokenStr = TokenBuilder.CreateTokenStr("jwt", ReqAuthId, uname, TokenOverTime);
                 ToolFactory.LogHelper.Notice("生成token:" + tokenStr);
                 ToolFactory.CacheHelper.SetCache("ServiceTokenCacheKey_" + uname, tokenStr, TimeSpan.FromSeconds(TokenOverTime + 600)); //多存600秒
                 return new TokenResult() { Success = true, Token = AesHelper.Encrypt(tokenStr) }; ;
@@ -176,18 +182,20 @@ namespace ApiTokenAuth.Helper
             {
                 return new ValidTokenResult() { Success = false, Message = "not exit token" };
             }
-            string tokenStr = header.Authorization.Parameter;
+            string tokenStr = AesHelper.Decrypt(header.Authorization.Parameter);
             //ToolFactory.LogHelper.Notice("接收到带token的请求:" + tokenStr);
-            TokenClaims tcParam = TokenFactory.ParseTokenClaims(AesHelper.Decrypt(tokenStr));
-            TokenClaims tcCache = TokenFactory.ParseTokenClaims(ToolFactory.CacheHelper.GetCache<string>(tcParam.Usr));
+            TokenClaims tcParam = TokenBuilder.ParseTokenClaims(tokenStr);
+            TokenClaims tcCache = TokenBuilder.ParseTokenClaims(ToolFactory.CacheHelper.GetCache<string>("ServiceTokenCacheKey_" + tcParam.Usr));
             if (tcCache != null)
             {
                 if (TokenIsTimeLoss(tcCache.Exp))
                 {
+                    ToolFactory.LogHelper.Info("token过时,token:" + tokenStr);
                     return new ValidTokenResult() { Success = false, Message = "token过时" };
                 }
                 else if (tcCache.SingleStr != tcParam.SingleStr)
                 {
+                    ToolFactory.LogHelper.Info("token不正确,token:" + tokenStr);
                     return new ValidTokenResult() { Success = false, Message = "token不正确" };
                 }
                 else
@@ -197,6 +205,7 @@ namespace ApiTokenAuth.Helper
             }
             else
             {
+                ToolFactory.LogHelper.Info("ValidClientToken未授权的用户,token:" + tokenStr);
                 return new ValidTokenResult() { Success = false, Message = "未授权的用户" };
             }
         }
@@ -208,7 +217,7 @@ namespace ApiTokenAuth.Helper
         /// <returns></returns>
         private static bool ValidTokenAuth(string Auth)
         {
-            return Token_AllowAuthLists.Contains(Auth);
+            return TokenConfig.Default_WebAuth == Auth || (Token_AllowAuthLists != null && Token_AllowAuthLists.Contains(Auth));
         }
         /// <summary>
         /// 判断token是否失效,可以延长30秒来防止边界的错误

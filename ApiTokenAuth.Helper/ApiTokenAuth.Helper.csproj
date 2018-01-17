@@ -44,7 +44,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="TokenFactory.cs" />
+    <Compile Include="TokenConfig.cs" />
+    <Compile Include="TokenBuilder.cs" />
     <Compile Include="Tool\AesHelper.cs" />
     <Compile Include="Tool\Base64Helper.cs" />
     <Compile Include="Tool\ToolFactory.cs" />

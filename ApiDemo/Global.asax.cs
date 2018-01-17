@@ -19,7 +19,7 @@ namespace ApiDemo
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
-            //TokenService.Init(null, null, null, 30);
+            TokenService.Init(null, null, null, 35);
         }
     }
 }

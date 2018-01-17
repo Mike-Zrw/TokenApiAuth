@@ -25,11 +25,24 @@ namespace ApiTokenAuth.Helper
         /// <summary>
         /// 本站用户标识,默认取webconfig 中的Token_WebAuth节点
         /// </summary>
-        public virtual string Token_WebAuth { get { if (_webAuth == null) { _webAuth = ConfigurationManager.AppSettings["Token_WebAuth"]; } return _webAuth; } }
+        public virtual string Token_WebAuth
+        {
+            get
+            {
+                if (_webAuth == null)
+                {
+                    if (ConfigurationManager.AppSettings["Token_WebAuth"] != null)
+                        _webAuth = ConfigurationManager.AppSettings["Token_WebAuth"];
+                    else
+                        _webAuth = TokenConfig.Default_WebAuth;
+                }
+                return _webAuth;
+            }
+        }
         /// <summary>
         /// 获取token的地址
         /// </summary>
-        public virtual string TokenUrl { get { return "rest/Token/GetToken"; } }
+        public virtual string TokenUrl { get { return TokenConfig.Default_Token_Url; } }
         /// <summary>
         /// 接口地址
         /// </summary>
@@ -94,7 +107,7 @@ namespace ApiTokenAuth.Helper
             string tokenStr = ToolFactory.CacheHelper.GetCache<string>(cachename);
             if (tokenStr != null)
             {
-                TokenClaims tc = TokenFactory.ParseTokenClaims(tokenStr);
+                TokenClaims tc = TokenBuilder.ParseTokenClaims(tokenStr);
                 if (TimeHelper.GetTimeSecond() >= tc.Exp)
                     return null;
                 else
@@ -109,7 +122,7 @@ namespace ApiTokenAuth.Helper
         /// <param name="tokenStr"></param>
         private static void SetCacheToken(string cachename, string tokenStr)
         {
-            TokenClaims tc = TokenFactory.ParseTokenClaims(tokenStr);
+            TokenClaims tc = TokenBuilder.ParseTokenClaims(tokenStr);
             long tokenOverTime = tc.Exp - TimeHelper.GetTimeSecond(); //token有效的剩余时间
             ToolFactory.CacheHelper.SetCache(cachename, tokenStr, TimeSpan.FromSeconds(tokenOverTime - 30));
         }

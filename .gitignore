@@ -4,3 +4,8 @@
 /ApiDemo/bin
 /packages
 /ClientDemo/bin
+/ApiDemo/tokenlog
+/ClientDemo/tokenlog
+/ClientDemo/obj
+/ApiDemo/obj
+/ApiTokenAuth.Helper/obj

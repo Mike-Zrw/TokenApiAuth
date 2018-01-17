@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace ApiTokenAuth.Helper
 {
 
-    public class TokenFactory
+    public class TokenBuilder
     {
         /// <summary>
         /// 创建一个token字符串,结构为tokenclaims的加密形式
