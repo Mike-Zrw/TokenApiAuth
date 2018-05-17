@@ -11,9 +11,17 @@ namespace ClientDemo.Controllers
     {
         public ActionResult Index()
         {
-            TestApiReference t = new TestApiReference();
-            string name=t.GetName();
-            ViewData["Name"] = name;
+            try
+            {
+                TestApiReference t = new TestApiReference();
+                string name = t.GetName();
+                ViewData["Name"] = name;
+            }
+            catch (Exception ex)
+            {
+                ApiTokenAuth.Helper.ToolFactory.LogHelper.Error("报错：", ex);
+                throw;
+            }
             return View();
         }
 

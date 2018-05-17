@@ -24,11 +24,11 @@ namespace ApiTokenAuth.Helper
         /// </summary>
         public string Usr { get; set; }
         /// <summary>
-        /// 签发时间 秒
+        /// 签发时间 秒,时间点
         /// </summary>
         public long Iat { get; set; }
         /// <summary>
-        /// 到期时间 秒
+        /// 到期时间 秒,时间点
         /// </summary>
         public long Exp { get; set; }
         /// <summary>

@@ -55,7 +55,14 @@ namespace ApiTokenAuth.Helper
 
         private static object _syncToken = new object();
         private static object _syncRoot = new object();
+        /// <summary>
+        /// 对于同一个连接保存一个httpclient示例，过多会有问题
+        /// </summary>
         private static Dictionary<string, HttpClient> HttpClients = new Dictionary<string, HttpClient>();
+        /// <summary>
+        /// 保存每个token字符串对应的数据结构，避免不停地解密
+        /// </summary>
+        private static Dictionary<string, TokenClaims> TokenClaimDic = new Dictionary<string, TokenClaims>();
         /// <summary>
         /// 每个地址保持一个静态的HttpClient,每次实例化会有并发问题
         /// </summary>
@@ -76,7 +83,7 @@ namespace ApiTokenAuth.Helper
                     }
                 }
                 HttpClientSingle = HttpClients[ApiUrl];
-                string token = CheckCacheToken(CacheName);
+                string token = CheckCacheToken();
                 if (token == null)
                     FillTokenToReqHeader(); ;
                 return HttpClientSingle;
@@ -102,30 +109,20 @@ namespace ApiTokenAuth.Helper
         /// 核对缓存中是否存在token以及token的有效性
         /// </summary>
         /// <param name="cachename">缓存名称</param>
-        private static string CheckCacheToken(string cachename)
+        private string CheckCacheToken()
         {
-            string tokenStr = ToolFactory.CacheHelper.GetCache<string>(cachename);
-            if (tokenStr != null)
+            string tokenStr = ToolFactory.CacheHelper.GetCache<string>(CacheName);
+            TokenClaims claim = TokenClaimDic.ContainsKey(CacheName) ? TokenClaimDic[CacheName] : null;
+            if (tokenStr != null && claim != null)
             {
-                TokenClaims tc = TokenBuilder.ParseTokenClaims(tokenStr);
-                if (TimeHelper.GetTimeSecond() >= tc.Exp)
+                if (TimeHelper.GetTimeSecond() >= claim.Exp)
                     return null;
                 else
                     return tokenStr;
             }
             return null;
         }
-        /// <summary>
-        /// 将token写入到缓存中
-        /// </summary>
-        /// <param name="cachename">缓存名称</param>
-        /// <param name="tokenStr"></param>
-        private static void SetCacheToken(string cachename, string tokenStr)
-        {
-            TokenClaims tc = TokenBuilder.ParseTokenClaims(tokenStr);
-            long tokenOverTime = tc.Exp - TimeHelper.GetTimeSecond(); //token有效的剩余时间
-            ToolFactory.CacheHelper.SetCache(cachename, tokenStr, TimeSpan.FromSeconds(tokenOverTime - 30));
-        }
+
 
         /// <summary>
         /// 获取token并填充到httpheader中
@@ -135,14 +132,30 @@ namespace ApiTokenAuth.Helper
         {
             lock (_syncToken)
             {
-                string tokencache = CheckCacheToken(CacheName);
+                string tokencache = CheckCacheToken();
                 if (tokencache == null)
                 {
-                    string tokenStr = GetToken();
+                    string tokenStr = MakeToken();
                     HttpClientSingle.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("auth", tokenStr);
-                    SetCacheToken(CacheName, AesHelper.Decrypt(tokenStr));
+                    SetCacheToken(tokenStr);
                 }
             }
+        }
+        /// <summary>
+        /// 将token写入到缓存中
+        /// </summary>
+        /// <param name="cachename">缓存名称</param>
+        /// <param name="tokenStr"></param>
+        private void SetCacheToken(string tokenStr)
+        {
+            TokenClaims claim = TokenBuilder.DecodeToken(tokenStr);
+            long tokenOverTime = claim.Exp - TimeHelper.GetTimeSecond(); //token有效的剩余时间
+            ToolFactory.CacheHelper.SetCache(CacheName, tokenStr, TimeSpan.FromSeconds(tokenOverTime - 60));
+            if (TokenClaimDic.ContainsKey(CacheName))
+            {
+                TokenClaimDic.Remove(CacheName);
+            }
+            TokenClaimDic.Add(CacheName, claim);
         }
 
         #region 获取token
@@ -150,12 +163,12 @@ namespace ApiTokenAuth.Helper
         /// 调用api获取新的token
         /// </summary>
         /// <returns></returns>
-        private string GetToken()
+        private string MakeToken()
         {
             try
             {
                 string tokenResult = Posts(TokenUrl, TokenClient.GetRequestParam(Token_WebAuth, PublicKey));
-                ToolFactory.LogHelper.Notice("重新获取token:" + tokenResult);
+                ToolFactory.LogHelper.Notice("重新获取token:" + tokenResult + " 当前httpclient数量：" + HttpClients.Count());
                 TokenResult getTokenResult = JsonConvert.DeserializeObject<TokenResult>(tokenResult);
                 if (getTokenResult.Success)
                 {

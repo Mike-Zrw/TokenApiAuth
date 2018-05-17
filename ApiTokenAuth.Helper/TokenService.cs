@@ -67,42 +67,6 @@ namespace ApiTokenAuth.Helper
                 string jsonMap = ConfigurationManager.AppSettings["AuthMapOverTime"];
                 AuthMapOverTime = JsonConvert.DeserializeObject<Dictionary<string, int>>(jsonMap);
             }
-            Timer tm = new Timer();
-            tm.Interval = 60000;
-            tm.Elapsed += Tm_ClearUnUseTokenCache;
-            tm.Start();
-        }
-        /// <summary>
-        /// 清除无用的cache
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private static void Tm_ClearUnUseTokenCache(object sender, ElapsedEventArgs e)
-        {
-            try
-            {
-                Dictionary<string, string> caches = ToolFactory.CacheHelper.GetAllCache("ServiceTokenCacheKey_");
-                int allcount = caches.Count;
-                int removeSum = 0;
-                if (allcount != 0)
-                {
-                    foreach (string key in caches.Keys)
-                    {
-                        string value = caches[key];
-                        TokenClaims tcCache = TokenBuilder.ParseTokenClaims(value);
-                        if (TokenIsTimeLoss(tcCache.Exp))
-                        {
-                            ToolFactory.CacheHelper.RemoveCache(key);
-                            removeSum++;
-                        }
-                    }
-                }
-                ToolFactory.LogHelper.Notice(string.Format("服务器定时清空无用缓存,本次共检索缓存{0}个,清除{1}个", allcount, removeSum));
-            }
-            catch (Exception ex)
-            {
-                ToolFactory.LogHelper.Error("时清空无用缓存报错", ex);
-            }
         }
 
         /// <summary>
@@ -172,10 +136,10 @@ namespace ApiTokenAuth.Helper
                 long TokenOverTime = Token_OverTime;
                 if (AuthMapOverTime != null && AuthMapOverTime.ContainsKey(ReqAuthId))
                     TokenOverTime = AuthMapOverTime[ReqAuthId];
-                string tokenStr = TokenBuilder.CreateTokenStr("jwt", ReqAuthId, uname, TokenOverTime);
+                string tokenStr = TokenBuilder.MakeToken(uname, ReqAuthId, TokenOverTime);
                 ToolFactory.LogHelper.Notice("生成token:" + tokenStr);
-                ToolFactory.CacheHelper.SetCache("ServiceTokenCacheKey_" + uname, tokenStr, TimeSpan.FromSeconds(TokenOverTime + 600)); //多存600秒
-                return new TokenResult() { Success = true, Token = AesHelper.Encrypt(tokenStr) }; ;
+                ToolFactory.CacheHelper.SetCache("ServiceTokenCacheKey_" + uname, tokenStr, TimeSpan.FromSeconds(TokenOverTime + 30)); //多存30秒，用于判断token的错误类型
+                return new TokenResult() { Success = true, Token = tokenStr }; ;
             }
             catch (Exception ex)
             {
@@ -195,10 +159,10 @@ namespace ApiTokenAuth.Helper
             {
                 return new ValidTokenResult() { Success = false, Message = "not exit token" };
             }
-            string tokenStr = AesHelper.Decrypt(header.Authorization.Parameter);
+            string tokenStr = header.Authorization.Parameter;
             //ToolFactory.LogHelper.Notice("接收到带token的请求:" + tokenStr);
-            TokenClaims tcParam = TokenBuilder.ParseTokenClaims(tokenStr);
-            TokenClaims tcCache = TokenBuilder.ParseTokenClaims(ToolFactory.CacheHelper.GetCache<string>("ServiceTokenCacheKey_" + tcParam.Usr));
+            TokenClaims tcParam = TokenBuilder.DecodeToken(tokenStr);
+            TokenClaims tcCache = TokenBuilder.DecodeToken(ToolFactory.CacheHelper.GetCache<string>("ServiceTokenCacheKey_" + tcParam.Usr));
             if (tcCache != null)
             {
                 if (TokenIsTimeLoss(tcCache.Exp))
@@ -233,12 +197,12 @@ namespace ApiTokenAuth.Helper
             return TokenConfig.Default_WebAuth == Auth || (Token_AllowAuthLists != null && Token_AllowAuthLists.Contains(Auth));
         }
         /// <summary>
-        /// 判断token是否失效,可以延长30秒来防止边界的错误
+        /// 判断token是否失效
         /// </summary>
         /// <returns></returns>
         private static bool TokenIsTimeLoss(long exptime)
         {
-            return TimeHelper.GetTimeSecond() > exptime + 30;
+            return TimeHelper.GetTimeSecond() > exptime;
         }
     }
 

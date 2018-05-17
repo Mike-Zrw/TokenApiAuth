@@ -24,7 +24,8 @@ namespace ApiTokenAuth.Helper
         /// <summary>
         /// 一个token的超时时间
         /// </summary>
-        public static readonly long Token_OverTime = 300 + 30;
+        public static readonly long Token_OverTime = 300;
 
+        public static string JwtKey { get { return "abs123"; } }
     }
 }
