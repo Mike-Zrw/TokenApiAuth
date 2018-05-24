@@ -27,9 +27,9 @@ namespace ApiTokenAuth.Helper
         /// <param name="role">用户权限</param>
         /// <param name="overTime">token超时时间段 秒</param>
         /// <returns></returns>
-        public static string MakeToken(string usr, string role, long overTime)
+        public static string MakeToken(string iss,string usr, string role, long overTime)
         {
-            TokenClaims Claim = GetTokenClaims(usr, role, overTime);
+            TokenClaims Claim = GetTokenClaims(iss,usr, role, overTime);
             var token = EncodeToken(Claim);
             return token;
         }
@@ -39,14 +39,14 @@ namespace ApiTokenAuth.Helper
         /// <param name="loginName"></param>
         /// <param name="sysid"></param>
         /// <returns></returns>
-        private static TokenClaims GetTokenClaims(string usr, string role, long overTime)
+        private static TokenClaims GetTokenClaims(string iss,string usr, string role, long overTime)
         {
             long time = TimeHelper.GetTimeSecond();
             return new TokenClaims()
             {
                 Usr = usr,
                 Iat = time,
-                Iss = "apicenter",
+                Iss = iss,
                 Role = role,
                 SingleStr = Guid.NewGuid().ToString(),
                 Exp = time + overTime

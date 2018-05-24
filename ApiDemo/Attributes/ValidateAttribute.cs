@@ -31,7 +31,7 @@ namespace ApiDemo.Attributes
             if (result.Success)
                 base.OnActionExecuting(actionContext);
             else
-                actionContext.Response = new HttpResponseMessage(HttpStatusCode.Unauthorized);
+                actionContext.Response = new HttpResponseMessage();
         }
     }
 }

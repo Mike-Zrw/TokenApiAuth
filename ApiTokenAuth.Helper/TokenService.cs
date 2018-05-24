@@ -22,6 +22,7 @@ namespace ApiTokenAuth.Helper
     /// </summary>
     public class TokenService
     {
+        private static string Iss = System.Web.Hosting.HostingEnvironment.ApplicationHost.GetSiteName();
         private static List<string> MakeTokenParamHistory = new List<string>();
         /// <summary>
         /// 请求获取token的超时时间
@@ -73,16 +74,13 @@ namespace ApiTokenAuth.Helper
         /// 服务提供端可调用此init方法，修改默认配置
         /// </summary>
         /// <param name="AllowAuthLists">允许访问api的用户</param>
-        /// <param name="cacheHelper">设置缓存的实现</param>
         /// <param name="logHelper">日志的实现类</param>
         /// <param name="token_OverTime">一个token的超时时间，默认300秒</param>
         /// <param name="ReqToken_OverTime">请求获取token的超时时间,客户端发起请求获取token，如果超过了此时间才到达api,则视为请求超时,默认60s</param>
-        public static void Init(string[] AllowAuthLists, ICacheHelper cacheHelper, ILogHelper logHelper, int token_OverTime = 0, int reqToken_OverTime = 60)
+        public static void Init(string[] AllowAuthLists, ILogHelper logHelper, int token_OverTime = 0, int reqToken_OverTime = 60)
         {
             if (AllowAuthLists != null)
                 Token_AllowAuthLists = AllowAuthLists;
-            if (cacheHelper != null)
-                ToolFactory.CacheHelper = cacheHelper;
             if (logHelper != null)
                 ToolFactory.LogHelper = logHelper;
             if (token_OverTime != 0)
@@ -136,9 +134,8 @@ namespace ApiTokenAuth.Helper
                 long TokenOverTime = Token_OverTime;
                 if (AuthMapOverTime != null && AuthMapOverTime.ContainsKey(ReqAuthId))
                     TokenOverTime = AuthMapOverTime[ReqAuthId];
-                string tokenStr = TokenBuilder.MakeToken(uname, ReqAuthId, TokenOverTime);
+                string tokenStr = TokenBuilder.MakeToken(Iss, uname, ReqAuthId, TokenOverTime);
                 ToolFactory.LogHelper.Notice("生成token:" + tokenStr);
-                ToolFactory.CacheHelper.SetCache("ServiceTokenCacheKey_" + uname, tokenStr, TimeSpan.FromSeconds(TokenOverTime + 30)); //多存30秒，用于判断token的错误类型
                 return new TokenResult() { Success = true, Token = tokenStr }; ;
             }
             catch (Exception ex)
@@ -160,41 +157,40 @@ namespace ApiTokenAuth.Helper
                 return new ValidTokenResult() { Success = false, Message = "not exit token" };
             }
             string tokenStr = header.Authorization.Parameter;
-            //ToolFactory.LogHelper.Notice("接收到带token的请求:" + tokenStr);
-            TokenClaims tcParam = TokenBuilder.DecodeToken(tokenStr);
-            TokenClaims tcCache = TokenBuilder.DecodeToken(ToolFactory.CacheHelper.GetCache<string>("ServiceTokenCacheKey_" + tcParam.Usr));
-            if (tcCache != null)
+            if (string.IsNullOrWhiteSpace(tokenStr))
             {
-                if (TokenIsTimeLoss(tcCache.Exp))
-                {
-                    ToolFactory.LogHelper.Info("token过时,token:" + tokenStr);
-                    return new ValidTokenResult() { Success = false, Message = "token过时" };
-                }
-                else if (tcCache.SingleStr != tcParam.SingleStr)
-                {
-                    ToolFactory.LogHelper.Info("token不正确,token:" + tokenStr);
-                    return new ValidTokenResult() { Success = false, Message = "token不正确" };
-                }
-                else
-                {
-                    return new ValidTokenResult() { Success = true };
-                }
+                return new ValidTokenResult() { Success = false, Message = "请求的token为空" };
+            }
+            TokenClaims tcParam = TokenBuilder.DecodeToken(tokenStr);
+            if (tcParam.Iss != Iss)
+            {
+                ToolFactory.LogHelper.Info("token验证失败,token发行者与当前系统不匹配:iss" + tcParam.Iss);
+                return new ValidTokenResult() { Success = false, Message = "用户权限验证失败,token发行者与当前系统不匹配" };
+            }
+            if (!ValidTokenAuth(tcParam.Role))
+            {
+                ToolFactory.LogHelper.Info("token验证失败,用户权限验证失败,角色没有权限调用该接口:role" + tcParam.Role);
+                return new ValidTokenResult() { Success = false, Message = "用户权限验证失败,角色没有权限调用该接口" };
+            }
+            if (TokenIsTimeLoss(tcParam.Exp))
+            {
+                ToolFactory.LogHelper.Info("token验证失败,token过时,token:" + tokenStr);
+                return new ValidTokenResult() { Success = false, Message = "请求的token过时" };
             }
             else
             {
-                ToolFactory.LogHelper.Info("ValidClientToken未授权的用户,token:" + tokenStr);
-                return new ValidTokenResult() { Success = false, Message = "未授权的用户" };
+                return new ValidTokenResult() { Success = true };
             }
         }
 
         /// <summary>
         /// 验证请求用户是否有权限调用api
         /// </summary>
-        /// <param name="Auth"></param>
+        /// <param name="role"></param>
         /// <returns></returns>
-        private static bool ValidTokenAuth(string Auth)
+        private static bool ValidTokenAuth(string role)
         {
-            return TokenConfig.Default_WebAuth == Auth || (Token_AllowAuthLists != null && Token_AllowAuthLists.Contains(Auth));
+            return TokenConfig.Default_WebAuth == role || (Token_AllowAuthLists != null && Token_AllowAuthLists.Contains(role));
         }
         /// <summary>
         /// 判断token是否失效
