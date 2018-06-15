@@ -1,0 +1,6 @@
+﻿{
+  "PrimaryKey": "<BitStrength>512</BitStrength><RSAKeyValue><Modulus>6B20IOuOFbrHsxs0hngRcHCtvDkY3O3mCAOhbBjTflg2/qEBovQh0O6ifFtSVI4oSA5c4GGqXAOd95aARURzgQ==</Modulus><Exponent>AQAB</Exponent><P>6/sFMGTc3bzsdSJkPf7/uuachEC2cP9olUDSZdpo+Zs=</P><Q>+87BJxu8WUV9KvpY0/s2/VTPJ5pRxm0kMc+Ln253FxM=</Q><DP>4sNANEXoXAgM7W6UB2NAWVj79La+2o0E8c/tnsSn9Zs=</DP><DQ>AcCGh4ch4F0jadEkHRV6ZHjamCPyvba0scQH7KwQGBE=</DQ><InverseQ>qzO4Jwt6uBh8YdpqXyUJvUoR/ARqJ8fRcwsUv1uR+FE=</InverseQ><D>A7KzhrL3FH27chC2BjSSzfZMIZBbiVPGYXTcnEeEm2HhH5T8fhOXqs0hqE72o/1ihnTcu1NwOcRGgn6qQcOQow==</D></RSAKeyValue>",
+  "PublicKey": "<BitStrength>512</BitStrength><RSAKeyValue><Modulus>6B20IOuOFbrHsxs0hngRcHCtvDkY3O3mCAOhbBjTflg2/qEBovQh0O6ifFtSVI4oSA5c4GGqXAOd95aARURzgQ==</Modulus><Exponent>AQAB</Exponent></RSAKeyValue>",
+  "Token_OverTime": 120,
+  "Token_AllowAuthList": [ "ABSTEST000" ]
+}

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using ApiTokenAuth.Helper.Service;
+using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -25,67 +26,67 @@ namespace ApiTokenAuth.Helper
         private static string Iss = System.Web.Hosting.HostingEnvironment.ApplicationHost.GetSiteName();
         private static List<string> MakeTokenParamHistory = new List<string>();
         /// <summary>
-        /// 请求获取token的超时时间
-        /// </summary>
-        private static string PrimaryKeyPath = ConfigurationManager.AppSettings["PrimaryKey"];
-        /// <summary>
         /// 请求获取token的超时时间 
         /// 客户端发起请求获取token，如果超过了此时间才到达api,则视为请求超时
         /// 默认60s
         /// </summary>
-        private static int ReqToken_OverTime = TokenConfig.ReqToken_OverTime;
+        private static int ReqToken_OverTime = TokenServiceConfig.ReqToken_OverTime;
         /// <summary>
         /// 一个token的超时时间，默认300秒
         /// </summary>
-        private static long Token_OverTime = TokenConfig.Token_OverTime;
-        private static string Config_PrimaryKey { get { return PrimaryKeyPath; } }
+        private static long Token_OverTime = TokenServiceConfig.Token_OverTime;
+        private static string Config_PrimaryKey { get { return TokenServiceConfig.PrimaryKey; } }
 
         /// <summary>
         /// 有权限调用api的用户列表
         /// </summary>
-        private static string[] Token_AllowAuthLists;
+        private static string[] Token_AllowAuthLists= TokenServiceConfig.Token_AllowAuthLists;
         /// <summary>
         /// Token_OverTime和auth的对应配置
         /// </summary>
         private static Dictionary<string, int> AuthMapOverTime;
-        static TokenService()
-        {
-            if (ConfigurationManager.AppSettings["Token_AllowAuthList"] != null)
-            {
-                string Token_AllowAuthList = ConfigurationManager.AppSettings["Token_AllowAuthList"].ToString();
-                Token_AllowAuthLists = Token_AllowAuthList.Split(',');
-            }
-            if (ConfigurationManager.AppSettings["Token_OverTime"] != null)
-            {
-                Token_OverTime = Convert.ToInt32(ConfigurationManager.AppSettings["Token_OverTime"]);
-            }
-            if (ConfigurationManager.AppSettings["ReqToken_OverTime"] != null)
-            {
-                ReqToken_OverTime = Convert.ToInt32(ConfigurationManager.AppSettings["ReqToken_OverTime"]);
-            }
-            if (ConfigurationManager.AppSettings["AuthMapOverTime"] != null) //{"auth1":1000}
-            {
-                string jsonMap = ConfigurationManager.AppSettings["AuthMapOverTime"];
-                AuthMapOverTime = JsonConvert.DeserializeObject<Dictionary<string, int>>(jsonMap);
-            }
-        }
+
+        #region 初始化
 
         /// <summary>
         /// 服务提供端可调用此init方法，修改默认配置
         /// </summary>
-        /// <param name="AllowAuthLists">允许访问api的用户</param>
+        /// <param name="AllowAuthListStr">允许访问api的用户</param>
         /// <param name="logHelper">日志的实现类</param>
         /// <param name="token_OverTime">一个token的超时时间，默认300秒</param>
         /// <param name="ReqToken_OverTime">请求获取token的超时时间,客户端发起请求获取token，如果超过了此时间才到达api,则视为请求超时,默认60s</param>
-        public static void Init(string[] AllowAuthLists, ILogHelper logHelper, int token_OverTime = 0, int reqToken_OverTime = 60)
+        public static void Init(string AllowAuthListStr, ILogHelper logHelper, int token_OverTime = 0, int reqToken_OverTime = 60)
         {
-            if (AllowAuthLists != null)
-                Token_AllowAuthLists = AllowAuthLists;
+            if (AllowAuthListStr != null)
+                Token_AllowAuthLists = AllowAuthListStr.Split(',');
             if (logHelper != null)
                 ToolFactory.LogHelper = logHelper;
             if (token_OverTime != 0)
                 Token_OverTime = token_OverTime + 30;
             ReqToken_OverTime = reqToken_OverTime;
+        }
+        public static void SetAllowAuthList(string listStr)
+        {
+            Token_AllowAuthLists = listStr.Split(',');
+        }
+        public static void SetAuthMapOverTime(Dictionary<string, int> map)
+        {
+            AuthMapOverTime = map;
+        }
+
+        public static void SetTokenConfigPath(string path)
+        {
+            TokenServiceConfig.ConfigFilePath = path;
+        }
+        #endregion
+
+        public static string GetPublicKey(string role)
+        {
+            if (!ValidTokenAuth(role))
+            {
+                return null;
+            }
+            return TokenServiceConfig.PublicKey;
         }
 
         /// <summary>

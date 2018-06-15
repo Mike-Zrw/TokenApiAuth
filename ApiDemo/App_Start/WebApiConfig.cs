@@ -16,7 +16,7 @@ namespace ApiDemo
 
             config.Routes.MapHttpRoute(
                 name: "DefaultApi",
-                routeTemplate: "rest/{controller}/{id}",
+                routeTemplate: "rest/{controller}/{action}/{id}",
                 defaults: new { id = RouteParameter.Optional }
             );
         }

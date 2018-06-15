@@ -49,12 +49,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="TokenConfig.cs" />
+    <Compile Include="Client\TokenCache.cs" />
+    <Compile Include="Client\TokenClientConfig.cs" />
+    <Compile Include="Service\TokenServiceConfig.cs" />
+    <Compile Include="Model\TokenConfig.cs" />
     <Compile Include="TokenBuilder.cs" />
     <Compile Include="Tool\AesHelper.cs" />
     <Compile Include="Tool\Base64Helper.cs" />
     <Compile Include="Tool\ToolFactory.cs" />
-    <Compile Include="Tool\ICacheHelper.cs" />
     <Compile Include="Tool\ILogHelper.cs" />
     <Compile Include="Tool\LogHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -62,7 +64,6 @@
     <Compile Include="Tool\TimeHelper.cs" />
     <Compile Include="TokenClient.cs" />
     <Compile Include="BaseApiReference.cs" />
-    <Compile Include="Tool\CacheHelper.cs" />
     <Compile Include="Model\TokenClaims.cs" />
     <Compile Include="Model\TokenResult.cs" />
     <Compile Include="TokenService.cs" />

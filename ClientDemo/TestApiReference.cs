@@ -14,8 +14,6 @@ namespace ClientDemo
 
         private static string _ApiUrl;
         public override string ApiUrl { get { if (_ApiUrl == null) { _ApiUrl = ConfigurationManager.AppSettings["ApiUri"]; } return _ApiUrl; } }
-        private static string _PublicKey;
-        public override string PublicKey { get { if (_PublicKey == null) { _PublicKey = ConfigurationManager.AppSettings["PublicKey"]; } return _PublicKey; } }
 
         public string GetName()
         {

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using ApiTokenAuth.Helper.Client;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -31,10 +32,7 @@ namespace ApiTokenAuth.Helper
             {
                 if (_webAuth == null)
                 {
-                    if (ConfigurationManager.AppSettings["Token_WebAuth"] != null)
-                        _webAuth = ConfigurationManager.AppSettings["Token_WebAuth"];
-                    else
-                        _webAuth = TokenConfig.Default_WebAuth;
+                    _webAuth = TokenConfig.Default_WebAuth;
                 }
                 return _webAuth;
             }
@@ -42,12 +40,15 @@ namespace ApiTokenAuth.Helper
         /// <summary>
         /// 获取token的地址
         /// </summary>
-        public virtual string TokenUrl { get { return TokenConfig.Default_Token_Url; } }
+        public virtual string TokenUrl { get { return TokenClientConfig.Default_Token_Url; } }
+        /// <summary>
+        /// 获取tpubliKey的地址
+        /// </summary>
+        public virtual string PublicKeyUrl { get { return TokenClientConfig.Default_PublicKey_Url; } }
         /// <summary>
         /// 接口地址
         /// </summary>
         public abstract string ApiUrl { get; }
-        public abstract string PublicKey { get; }
         /// <summary>
         /// 缓存的token key名字，每个连接不可重复
         /// </summary>
@@ -59,10 +60,7 @@ namespace ApiTokenAuth.Helper
         /// 对于同一个连接保存一个httpclient示例，过多会有问题
         /// </summary>
         private static Dictionary<string, HttpClient> HttpClients = new Dictionary<string, HttpClient>();
-        /// <summary>
-        /// 保存每个token字符串对应的数据结构，避免不停地解密
-        /// </summary>
-        private static Dictionary<string, TokenClaims> TokenClaimDic = new Dictionary<string, TokenClaims>();
+        private static Dictionary<string, string> PublicKeys = new Dictionary<string, string>();
         /// <summary>
         /// 每个地址保持一个静态的HttpClient,每次实例化会有并发问题
         /// </summary>
@@ -111,14 +109,13 @@ namespace ApiTokenAuth.Helper
         /// <param name="cachename">缓存名称</param>
         private string CheckCacheToken()
         {
-            string tokenStr = ToolFactory.CacheHelper.GetCache<string>(CacheName);
-            TokenClaims claim = TokenClaimDic.ContainsKey(CacheName) ? TokenClaimDic[CacheName] : null;
-            if (tokenStr != null && claim != null)
+            TokenCacheModel token = TokenCache.GetCacheToken(CacheName);
+            if (token != null)
             {
-                if (TimeHelper.GetTimeSecond() >= claim.Exp)
+                if (TimeHelper.GetTimeSecond() >= (token.TokenClaim.Exp - 60))
                     return null;
                 else
-                    return tokenStr;
+                    return token.TokenStr;
             }
             return null;
         }
@@ -137,26 +134,11 @@ namespace ApiTokenAuth.Helper
                 {
                     string tokenStr = MakeToken();
                     HttpClientSingle.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("auth", tokenStr);
-                    SetCacheToken(tokenStr);
+                    TokenClaims claim = TokenCache.SetTokenCache(CacheName, tokenStr);
                 }
             }
         }
-        /// <summary>
-        /// 将token写入到缓存中
-        /// </summary>
-        /// <param name="cachename">缓存名称</param>
-        /// <param name="tokenStr"></param>
-        private void SetCacheToken(string tokenStr)
-        {
-            TokenClaims claim = TokenBuilder.DecodeToken(tokenStr);
-            long tokenOverTime = claim.Exp - TimeHelper.GetTimeSecond(); //token有效的剩余时间
-            ToolFactory.CacheHelper.SetCache(CacheName, tokenStr, TimeSpan.FromSeconds(tokenOverTime - 60));
-            if (TokenClaimDic.ContainsKey(CacheName))
-            {
-                TokenClaimDic.Remove(CacheName);
-            }
-            TokenClaimDic.Add(CacheName, claim);
-        }
+
 
         #region 获取token
         /// <summary>
@@ -167,8 +149,20 @@ namespace ApiTokenAuth.Helper
         {
             try
             {
-                string tokenResult = Posts(TokenUrl, TokenClient.GetRequestParam(Token_WebAuth, PublicKey));
-                ToolFactory.LogHelper.Notice("重新获取token:" + tokenResult + " 当前httpclient数量：" + HttpClients.Count());
+                if (!PublicKeys.ContainsKey(ApiUrl))
+                {
+                    try
+                    {
+                        string publickey = Posts(PublicKeyUrl, Token_WebAuth);
+                        PublicKeys.Add(ApiUrl, publickey);
+                    }
+                    catch (Exception ex)
+                    {
+                        TokenClientConfig.LogHelper.Error(ApiUrl + TokenUrl + ":获取publickey调用失败", ex);
+                    }
+                }
+                string tokenResult = Posts(TokenUrl, TokenClient.GetRequestParam(Token_WebAuth, PublicKeys[ApiUrl]));
+                TokenClientConfig.LogHelper.Notice("重新获取token:" + tokenResult + " 当前httpclient数量：" + HttpClients.Count());
                 TokenResult getTokenResult = JsonConvert.DeserializeObject<TokenResult>(tokenResult);
                 if (getTokenResult.Success)
                 {
@@ -182,7 +176,7 @@ namespace ApiTokenAuth.Helper
             }
             catch (Exception ex)
             {
-                ToolFactory.LogHelper.Error(ApiUrl + TokenUrl + ":获取tokenApi调用失败", ex);
+                TokenClientConfig.LogHelper.Error(ApiUrl + TokenUrl + ":获取tokenApi调用失败", ex);
                 throw ex;
             }
         }
@@ -201,7 +195,7 @@ namespace ApiTokenAuth.Helper
             newStream.Close();
             HttpWebResponse response = (HttpWebResponse)request.GetResponse();
             StreamReader php = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
-            string phpend = php.ReadToEnd();
+            string phpend = System.Web.HttpUtility.UrlDecode(php.ReadToEnd());
             return phpend;
         }
         #endregion

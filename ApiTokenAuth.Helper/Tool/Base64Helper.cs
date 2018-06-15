@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ApiTokenAuth.Helper
 {
-    public class Base64Helper1
+    public class Base64Helper
     {
         /// <summary>
         /// 加密

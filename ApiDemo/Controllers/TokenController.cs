@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Web.Http;
 
 namespace ApiDemo.Controllers
@@ -23,6 +24,14 @@ namespace ApiDemo.Controllers
         {
             TokenResult result = TokenService.MakeToken(obj);
             return result;
+        }
+        [HttpPost]
+        public HttpResponseMessage GetPublicKey([FromBody]string obj)
+        {
+            string result = TokenService.GetPublicKey(obj);
+            HttpResponseMessage responseMessage = new HttpResponseMessage { Content = new StringContent(result, Encoding.GetEncoding("UTF-8"), "text/plain") };
+            return responseMessage;
+
         }
     }
 }

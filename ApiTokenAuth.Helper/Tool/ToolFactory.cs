@@ -8,7 +8,6 @@ namespace ApiTokenAuth.Helper
 {
     public class ToolFactory
     {
-        public static ICacheHelper CacheHelper = new CacheHelper();
 
         public static ILogHelper LogHelper = new LogHelper();
     }

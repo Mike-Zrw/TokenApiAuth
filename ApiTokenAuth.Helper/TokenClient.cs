@@ -18,10 +18,8 @@ namespace ApiTokenAuth.Helper
         /// </summary>
         /// <param name="cacheHelper">设置缓存的实现</param>
         /// <param name="logHelper">日志的实现类</param>
-        public static void Init(ICacheHelper cacheHelper, ILogHelper logHelper)
+        public static void Init(ILogHelper logHelper)
         {
-            if (cacheHelper != null)
-                ToolFactory.CacheHelper = cacheHelper;
             if (logHelper != null)
                 ToolFactory.LogHelper = logHelper;
         }
