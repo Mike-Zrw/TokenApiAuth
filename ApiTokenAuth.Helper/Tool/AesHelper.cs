@@ -14,10 +14,6 @@ namespace ApiTokenAuth.Helper
         {
             get
             {
-                if (ConfigurationManager.AppSettings["Token_AesKey"] != null)
-                {
-                    return UTF8Encoding.UTF8.GetBytes(ConfigurationManager.AppSettings["Token_AesKey"]);
-                }
                 return UTF8Encoding.UTF8.GetBytes("12345678901234567890123456789012");
             }
         }

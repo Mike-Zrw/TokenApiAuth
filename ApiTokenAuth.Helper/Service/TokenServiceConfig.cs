@@ -50,7 +50,7 @@ namespace ApiTokenAuth.Helper.Service
                         Token_OverTime = 300;
                     PrimaryKey = config.PrimaryKey;
                     PublicKey = config.PublicKey;
-
+                    Token_AllowAuthLists = config.Token_AllowAuthList;
                 }
                 catch (Exception ex)
                 {
@@ -66,6 +66,7 @@ namespace ApiTokenAuth.Helper.Service
         }
         private class ConfigModel
         {
+            public string[] Token_AllowAuthList { get; set; }
             public int ReqToken_OverTime { get; set; }
             public long Token_OverTime { get; set; }
             public string PrimaryKey { get; set; }

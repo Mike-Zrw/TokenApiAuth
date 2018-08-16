@@ -13,7 +13,7 @@ namespace ApiTokenAuth.Helper
     /// </summary>
     public class LogHelper : ILogHelper
     {
-        public static string TokenLogLevel = ConfigurationManager.AppSettings["TokenLogLevel"];
+        public static string TokenLogLevel = "error";
         public void Error(string message, Exception ex = null)
         {
             try

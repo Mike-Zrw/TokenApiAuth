@@ -60,6 +60,9 @@ namespace ApiTokenAuth.Helper
         /// 对于同一个连接保存一个httpclient示例，过多会有问题
         /// </summary>
         private static Dictionary<string, HttpClient> HttpClients = new Dictionary<string, HttpClient>();
+        /// <summary>
+        /// 一个api对应一个publicKey
+        /// </summary>
         private static Dictionary<string, string> PublicKeys = new Dictionary<string, string>();
         /// <summary>
         /// 每个地址保持一个静态的HttpClient,每次实例化会有并发问题
@@ -161,7 +164,7 @@ namespace ApiTokenAuth.Helper
                         TokenClientConfig.LogHelper.Error(ApiUrl + TokenUrl + ":获取publickey调用失败", ex);
                     }
                 }
-                string tokenResult = Posts(TokenUrl, TokenClient.GetRequestParam(Token_WebAuth, PublicKeys[ApiUrl]));
+                string tokenResult = Posts(TokenUrl, GetRequestParam(Token_WebAuth, PublicKeys[ApiUrl]));
                 TokenClientConfig.LogHelper.Notice("重新获取token:" + tokenResult + " 当前httpclient数量：" + HttpClients.Count());
                 TokenResult getTokenResult = JsonConvert.DeserializeObject<TokenResult>(tokenResult);
                 if (getTokenResult.Success)
@@ -178,6 +181,27 @@ namespace ApiTokenAuth.Helper
             {
                 TokenClientConfig.LogHelper.Error(ApiUrl + TokenUrl + ":获取tokenApi调用失败", ex);
                 throw ex;
+            }
+        }
+
+
+        /// <summary>
+        /// 获取请求token需要传递的参数(时间戳+请求身份标识10位+guid)
+        /// </summary>
+        /// <param name="auth">用户身份标识</param>
+        /// <param name="PublicKey">密钥，若不传入</param>
+        /// <returns></returns>
+        public string GetRequestParam(string auth, string PublicKey)
+        {
+            string rdStr = Guid.NewGuid().ToString();//new Random().Next(100, 999).ToString();//
+            if (PublicKey == null)
+            {
+                throw new Exception("没有配置publickey");
+            }
+            else
+            {
+                string encData = RSAHelper.Encrypt(TimeHelper.GetTimeSecond() + auth + rdStr, PublicKey);
+                return JsonConvert.SerializeObject(new { RequestAuth = encData });
             }
         }
 
