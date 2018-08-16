@@ -23,7 +23,7 @@ namespace ApiTokenAuth.Helper
     /// </summary>
     public class TokenService
     {
-        private static string Iss = System.Web.Hosting.HostingEnvironment.ApplicationHost.GetSiteName();
+        private static string Iss = TokenServiceConfig.ServiceName ?? Guid.NewGuid().ToString();
         private static List<string> MakeTokenParamHistory = new List<string>();
         /// <summary>
         /// 请求获取token的超时时间 
@@ -40,7 +40,7 @@ namespace ApiTokenAuth.Helper
         /// <summary>
         /// 有权限调用api的用户列表
         /// </summary>
-        private static string[] Token_AllowAuthLists= TokenServiceConfig.Token_AllowAuthLists;
+        private static string[] Token_AllowAuthLists = TokenServiceConfig.Token_AllowAuthLists;
         /// <summary>
         /// Token_OverTime和auth的对应配置
         /// </summary>

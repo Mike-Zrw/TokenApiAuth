@@ -25,6 +25,10 @@ namespace ApiTokenAuth.Helper.Service
         /// </summary>
         public static string ConfigFilePath { get; set; }
         public static string[] Token_AllowAuthLists { get; private set; }
+        /// <summary>
+        /// 本服务的名称
+        /// </summary>
+        public static string ServiceName { get; private set; }
 
         static TokenServiceConfig()
         {
