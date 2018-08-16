@@ -1,0 +1,45 @@
+【18-08-16 14:21:36】	Token配置文件目录不存在
+【18-08-16 14:22:19】	Token配置文件目录不存在
+【18-08-16 14:22:39】	Token配置文件目录不存在
+【18-08-16 14:35:53】	生成token出现异常
+Operation is not supported on this platform.
+   at System.Security.Cryptography.RSA.FromXmlString(String xmlString)
+   at ApiTokenAuth.Helper.RSAHelper.DecryptString(String inputString, Int32 dwKeySize, String xmlString) in E:\MyObject\GitObject\TokenApiAuth\ApiTokenAuth.Helper\Tool\RSAHelper.cs:line 85
+   at ApiTokenAuth.Helper.RSAHelper.Decrypt(String p_inputString, String p_strKeyStr) in E:\MyObject\GitObject\TokenApiAuth\ApiTokenAuth.Helper\Tool\RSAHelper.cs:line 43
+   at ApiTokenAuth.Helper.TokenService.MakeToken(String RequestParam, String PrimaryKey) in E:\MyObject\GitObject\TokenApiAuth\ApiTokenAuth.Helper\TokenService.cs:line 105
+【18-08-16 14:36:44】	生成token出现异常
+Operation is not supported on this platform.
+   at System.Security.Cryptography.RSA.FromXmlString(String xmlString)
+   at ApiTokenAuth.Helper.RSAHelper.DecryptString(String inputString, Int32 dwKeySize, String xmlString) in E:\MyObject\GitObject\TokenApiAuth\ApiTokenAuth.Helper\Tool\RSAHelper.cs:line 85
+   at ApiTokenAuth.Helper.RSAHelper.Decrypt(String p_inputString, String p_strKeyStr) in E:\MyObject\GitObject\TokenApiAuth\ApiTokenAuth.Helper\Tool\RSAHelper.cs:line 43
+   at ApiTokenAuth.Helper.TokenService.MakeToken(String RequestParam, String PrimaryKey) in E:\MyObject\GitObject\TokenApiAuth\ApiTokenAuth.Helper\TokenService.cs:line 105
+【18-08-16 14:37:35】	生成token出现异常
+Operation is not supported on this platform.
+   at System.Security.Cryptography.RSA.FromXmlString(String xmlString)
+   at ApiTokenAuth.Helper.RSAHelper.DecryptString(String inputString, Int32 dwKeySize, String xmlString) in E:\MyObject\GitObject\TokenApiAuth\ApiTokenAuth.Helper\Tool\RSAHelper.cs:line 85
+   at ApiTokenAuth.Helper.RSAHelper.Decrypt(String p_inputString, String p_strKeyStr) in E:\MyObject\GitObject\TokenApiAuth\ApiTokenAuth.Helper\Tool\RSAHelper.cs:line 43
+   at ApiTokenAuth.Helper.TokenService.MakeToken(String RequestParam, String PrimaryKey) in E:\MyObject\GitObject\TokenApiAuth\ApiTokenAuth.Helper\TokenService.cs:line 105
+【18-08-16 14:49:19】	生成token出现异常
+Operation is not supported on this platform.
+   at System.Security.Cryptography.RSA.FromXmlString(String xmlString)
+   at ApiTokenAuth.Helper.RSAHelper.DecryptString(String inputString, Int32 dwKeySize, String xmlString) in E:\MyObject\GitObject\TokenApiAuth\ApiTokenAuth.Helper\Tool\RSAHelper.cs:line 85
+   at ApiTokenAuth.Helper.RSAHelper.Decrypt(String p_inputString, String p_strKeyStr) in E:\MyObject\GitObject\TokenApiAuth\ApiTokenAuth.Helper\Tool\RSAHelper.cs:line 43
+   at ApiTokenAuth.Helper.TokenService.MakeToken(String RequestParam, String PrimaryKey) in E:\MyObject\GitObject\TokenApiAuth\ApiTokenAuth.Helper\TokenService.cs:line 105
+【18-08-16 14:50:02】	生成token出现异常
+Operation is not supported on this platform.
+   at System.Security.Cryptography.RSA.FromXmlString(String xmlString)
+   at ApiTokenAuth.Helper.RSAHelper.DecryptString(String inputString, Int32 dwKeySize, String xmlString) in E:\MyObject\GitObject\TokenApiAuth\ApiTokenAuth.Helper\Tool\RSAHelper.cs:line 85
+   at ApiTokenAuth.Helper.RSAHelper.Decrypt(String p_inputString, String p_strKeyStr) in E:\MyObject\GitObject\TokenApiAuth\ApiTokenAuth.Helper\Tool\RSAHelper.cs:line 43
+   at ApiTokenAuth.Helper.TokenService.MakeToken(String RequestParam, String PrimaryKey) in E:\MyObject\GitObject\TokenApiAuth\ApiTokenAuth.Helper\TokenService.cs:line 105
+【18-08-16 14:51:20】	生成token出现异常
+Operation is not supported on this platform.
+   at System.Security.Cryptography.RSA.FromXmlString(String xmlString)
+   at ApiTokenAuth.Helper.RSAHelper.DecryptString(String inputString, Int32 dwKeySize, String xmlString) in E:\MyObject\GitObject\TokenApiAuth\ApiTokenAuth.Helper\Tool\RSAHelper.cs:line 85
+   at ApiTokenAuth.Helper.RSAHelper.Decrypt(String p_inputString, String p_strKeyStr) in E:\MyObject\GitObject\TokenApiAuth\ApiTokenAuth.Helper\Tool\RSAHelper.cs:line 43
+   at ApiTokenAuth.Helper.TokenService.MakeToken(String RequestParam, String PrimaryKey) in E:\MyObject\GitObject\TokenApiAuth\ApiTokenAuth.Helper\TokenService.cs:line 105
+【18-08-16 15:04:16】	Token解析配置文件出错
+Operation is not supported on this platform.
+   at ApiTokenAuth.Helper.Service.TokenServiceConfig..cctor() in E:\MyObject\GitObject\TokenApiAuth\ApiTokenAuth.Helper\Service\TokenServiceConfig.cs:line 63
+【18-08-16 15:05:07】	Token解析配置文件出错
+Operation is not supported on this platform.
+   at ApiTokenAuth.Helper.Service.TokenServiceConfig..cctor() in E:\MyObject\GitObject\TokenApiAuth\ApiTokenAuth.Helper\Service\TokenServiceConfig.cs:line 63

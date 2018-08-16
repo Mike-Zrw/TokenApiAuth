@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace ApiTokenAuth.Helper
 {
@@ -54,7 +56,7 @@ namespace ApiTokenAuth.Helper
         private static string EncryptString(string p_inputString, int p_dwKeySize, string p_xmlString)
         {
             RSACryptoServiceProvider rsaCryptoServiceProvider = new RSACryptoServiceProvider(p_dwKeySize);
-            rsaCryptoServiceProvider.FromXmlString(p_xmlString);
+            FromXmlString(rsaCryptoServiceProvider, p_xmlString);
             int keySize = p_dwKeySize / 8;
             byte[] bytes = Encoding.UTF32.GetBytes(p_inputString);
             int maxLength = keySize - 42;
@@ -82,7 +84,7 @@ namespace ApiTokenAuth.Helper
         private static string DecryptString(string inputString, int dwKeySize, string xmlString)
         {
             RSACryptoServiceProvider rsaCryptoServiceProvider = new RSACryptoServiceProvider(dwKeySize);
-            rsaCryptoServiceProvider.FromXmlString(xmlString);
+            FromXmlString(rsaCryptoServiceProvider,xmlString);
             int base64BlockSize = ((dwKeySize / 8) % 3 != 0) ? (((dwKeySize / 8) / 3) * 4) + 4 : ((dwKeySize / 8) / 3) * 4;
             int iterations = inputString.Length / base64BlockSize;
             ArrayList arrayList = new ArrayList();
@@ -94,7 +96,67 @@ namespace ApiTokenAuth.Helper
             }
             return Encoding.UTF32.GetString(arrayList.ToArray(Type.GetType("System.Byte")) as byte[]);
         }
+        public static void FromXmlString(RSA rsa, string xml)
+        {
+            var csp = ExtractFromXml(xml);
+            rsa.ImportParameters(csp);
+        }
 
+        public static RSAParameters ExtractFromXml(string xml)
+        {
+            var csp = new RSAParameters();
+            using (var reader = XmlReader.Create(new StringReader(xml)))
+            {
+                while (reader.Read())
+                {
+                    if (reader.NodeType != XmlNodeType.Element)
+                        continue;
+
+                    var elName = reader.Name;
+                    if (elName == "RSAKeyValue")
+                        continue;
+
+                    do
+                    {
+                        reader.Read();
+                    } while (reader.NodeType != XmlNodeType.Text && reader.NodeType != XmlNodeType.EndElement);
+
+                    if (reader.NodeType == XmlNodeType.EndElement)
+                        continue;
+
+                    var value = reader.Value;
+                    switch (elName)
+                    {
+                        case "Modulus":
+                            csp.Modulus = Convert.FromBase64String(value);
+                            break;
+                        case "Exponent":
+                            csp.Exponent = Convert.FromBase64String(value);
+                            break;
+                        case "P":
+                            csp.P = Convert.FromBase64String(value);
+                            break;
+                        case "Q":
+                            csp.Q = Convert.FromBase64String(value);
+                            break;
+                        case "DP":
+                            csp.DP = Convert.FromBase64String(value);
+                            break;
+                        case "DQ":
+                            csp.DQ = Convert.FromBase64String(value);
+                            break;
+                        case "InverseQ":
+                            csp.InverseQ = Convert.FromBase64String(value);
+                            break;
+                        case "D":
+                            csp.D = Convert.FromBase64String(value);
+                            break;
+                    }
+                }
+
+                return csp;
+            }
+        }
 
     }
 }

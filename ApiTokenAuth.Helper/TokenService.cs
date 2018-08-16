@@ -146,11 +146,6 @@ namespace ApiTokenAuth.Helper
             }
         }
 
-        /// <summary>
-        /// 验证客户端发来的token是否有效
-        /// </summary>
-        /// <param name="header"></param>
-        /// <returns></returns>
         public static ValidTokenResult ValidClientToken(HttpRequestHeaders header)
         {
             if (header.Authorization == null || header.Authorization.Parameter == null)
@@ -158,6 +153,17 @@ namespace ApiTokenAuth.Helper
                 return new ValidTokenResult() { Success = false, Message = "not exit token" };
             }
             string tokenStr = header.Authorization.Parameter;
+            return ValidClientToken(tokenStr);
+        }
+     
+        /// <summary>
+        /// 验证客户端发来的token是否有效
+        /// </summary>
+        /// <param name="header"></param>
+        /// <returns></returns>
+        public static ValidTokenResult ValidClientToken(string tokenStr)
+        {
+
             if (string.IsNullOrWhiteSpace(tokenStr))
             {
                 return new ValidTokenResult() { Success = false, Message = "请求的token为空" };

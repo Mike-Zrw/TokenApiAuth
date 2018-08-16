@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientDemo", "ClientDemo\Cl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiTokenAuth.Helper", "ApiTokenAuth.Helper\ApiTokenAuth.Helper.csproj", "{18FD7A38-45EF-4A49-BD0F-CDBFC59ECF95}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreApiDemo", "CoreApiDemo\CoreApiDemo.csproj", "{17E1B054-30E7-45C4-89A6-4771CDBDEE0E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{18FD7A38-45EF-4A49-BD0F-CDBFC59ECF95}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{18FD7A38-45EF-4A49-BD0F-CDBFC59ECF95}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{18FD7A38-45EF-4A49-BD0F-CDBFC59ECF95}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17E1B054-30E7-45C4-89A6-4771CDBDEE0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17E1B054-30E7-45C4-89A6-4771CDBDEE0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17E1B054-30E7-45C4-89A6-4771CDBDEE0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17E1B054-30E7-45C4-89A6-4771CDBDEE0E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
